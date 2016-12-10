@@ -6,5 +6,6 @@
 /build
 /captures
 /.idea/vcs.xml
+/.idea/misc.xml
 /.idea/.name
 *.iml
