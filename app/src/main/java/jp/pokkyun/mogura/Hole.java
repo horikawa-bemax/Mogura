@@ -1,6 +1,5 @@
 package jp.pokkyun.mogura;
 
-import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -11,15 +10,18 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+
+import java.util.Random;
 
 /**
  * Created by bemax_ap01 on 2016/12/10.
  */
 
-public class Hole extends LinearLayout{
+public class Hole extends RelativeLayout{
     private LinearLayout moleBase;
     private ImageView imageView;
     private Mole mole;
@@ -43,21 +45,48 @@ public class Hole extends LinearLayout{
 
         if(!changed) return;
 
+        int width = right - left;
+        int height = buttom - top;
+        int mbWidth = width * 7 / 10;
+        int mbHeight = height * 5 / 6;
+        int horizon = mbHeight;
+        if(mbWidth < mbHeight){
+            mbHeight = mbWidth;
+        }else{
+            mbWidth = mbHeight;
+        }
+        int holeWidth = width * 8 / 10;
+        int holeHeight = height / 3;
+        int holeTop = horizon - holeHeight / 2;
+        int holeLeft = width / 10;
+
+        Log.d("width:height","" + width + ":" + height);
+
         moleBase = new LinearLayout(getContext());
-        int w = (right - left) * 6 / 10;
-        int h = buttom - top - 40;
-        LayoutParams params = new LayoutParams(w, h * 5 / 6);
-        params.gravity = Gravity.CENTER_HORIZONTAL;
+        //moleBase.setBackgroundColor(Color.BLUE);
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(mbWidth, mbHeight);
+        params.addRule(ALIGN_PARENT_TOP);
+        params.addRule(CENTER_IN_PARENT);
+        params.setMargins(0,horizon - mbHeight,0,0);
         addView(moleBase, params);
+
         imageView = new ImageView(getContext());
-        moleBase.addView(imageView);
+        LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(mbWidth, mbHeight);
+        imageParams.setMargins(0,mbHeight,0,0);
+        moleBase.addView(imageView, imageParams);
+
+        //Mole set
+        Mole mole = new Mole1(getContext(), imageView, mbHeight);
+        setMole(mole, getHandler());
 
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(Color.BLACK);
         paint.setStyle(Paint.Style.FILL);
-        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        canvas.drawOval(new RectF(20, h * 2 / 3, w - 20, h - 20), paint);
+        //canvas.drawColor(Color.RED);
+        canvas.drawOval(new RectF(holeLeft, holeTop, holeLeft + holeWidth, holeTop + holeHeight), paint);
         setBackground(new BitmapDrawable(getResources(), bitmap));
     }
 
@@ -73,10 +102,10 @@ public class Hole extends LinearLayout{
             public void run() {
                 imageView.setImageBitmap(mole.bitmap);
                 imageView.setOnTouchListener(mole);
-                ObjectAnimator animator = ObjectAnimator.ofFloat(imageView, "translationY", 400, 0, 400);
-                animator.setDuration(1000);
-                animator.setRepeatCount(ObjectAnimator.INFINITE);
-                animator.start();
+                Random rand = new Random();
+                int startDelay = rand.nextInt(3000);
+                mole.animator.setStartDelay(startDelay);
+                mole.animator.start();
             }
         });
     }
